@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QUIZ 8A5</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translate(0, 0); }
+            20% { transform: translate(-10px, 0); }
+            40% { transform: translate(10px, 0); }
+            60% { transform: translate(-8px, 0); }
+            80% { transform: translate(8px, 0); }
+        }
+
+        .animate-shake {
+            animation: shake 0.4s ease-in-out;
+        }
+    </style>
+</head>
+<body id="main-body" class="bg-slate-900 w-full h-screen overflow-hidden text-slate-800">
+
+    <audio id="bg-music" loop></audio>
+    <audio id="quiz-music" loop></audio>
+
+    <div id="flash-overlay" class="fixed inset-0 pointer-events-none z-50 transition-opacity duration-300 opacity-0"></div>
+
+    <div id="start-menu" class="relative w-full h-full flex flex-col items-center justify-center text-center p-4 overflow-hidden">
+        <img id="bg-img" 
+             src="https://i.postimg.cc/9QcVyJkN/Screenshot-2026-09-22-233236.png" 
+             alt="Ảnh lớp 8A5" 
+             class="absolute inset-0 w-full h-full object-cover z-0">
+
+        <div class="absolute inset-0 bg-black/40 backdrop-blur-[1px] z-10"></div>
+
+        <div class="relative z-20 space-y-4 sm:space-y-6 max-w-lg px-4 flex flex-col items-center">
+            <span class="inline-block px-5 py-2 bg-indigo-600/95 backdrop-blur-md text-white text-xs sm:text-sm font-bold rounded-full tracking-widest uppercase shadow-xl border border-indigo-300/40">
+               8A5 Mãi Đỉnh
+            </span>
+
+            <h1 class="text-5xl sm:text-7xl font-black text-white tracking-wider drop-shadow-[0_5px_20px_rgba(0,0,0,0.9)]">
+                QUIZ 8A5
+            </h1>
+
+            <p class="text-slate-100 text-sm sm:text-base font-semibold drop-shadow-md leading-relaxed">
+                Chủ Web Bj Rảnh😊
+            </p>
+
+            <button id="start-btn" onclick="startQuiz()" class="w-full py-4 px-8 bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white font-extrabold text-lg sm:text-xl rounded-2xl shadow-2xl transition-all duration-200 flex items-center justify-center space-x-3 border border-indigo-300/50 cursor-pointer">
+                <span>BẮT ĐẦU </span>
+                <i class="fa-solid fa-play text-lg"></i>
+            </button>
+        </div>
+
+        <div class="absolute bottom-1 z-30 text-slate-300 text-xs sm:text-sm font-semibold tracking-wide drop-shadow-md">
+           ⚠️ IMPORTANT:Câu Hỏi Được Tạo Nên Bởi Nhiều Người && Thk Lm Web Có Sự Hỗ Trợ Từ AI ⚠️
+        </div>
+    </div>
+
+    <div id="secret-intro-box" class="hidden fixed inset-0 z-40 bg-purple-950/95 flex items-center justify-center p-4">
+        <div class="w-full max-w-lg bg-slate-900 border-4 border-purple-500 rounded-3xl p-8 text-center shadow-[0_0_50px_rgba(168,85,247,0.5)]">
+            <div class="w-24 h-24 bg-purple-500/20 text-purple-400 rounded-full flex items-center justify-center mx-auto mb-6 text-4xl animate-bounce border-2 border-purple-400">
+                <i class="fa-solid fa-user-secret"></i>
+            </div>
+            <span class="px-4 py-1.5 bg-purple-600 text-white text-xs font-bold rounded-full uppercase tracking-widest shadow-md">
+                Đặc Biệt
+            </span>
+            <h2 class="text-3xl sm:text-4xl font-black text-white my-4 tracking-wider">
+                SECRET QUESTIONS
+            </h2>
+            <p class="text-purple-200 text-sm sm:text-base mb-8 leading-relaxed">
+                 Pls Don't Continue!
+            </p>
+            
+            <div class="flex flex-col sm:flex-row gap-3">
+                <button onclick="cancelSecretQuiz()" class="flex-1 py-3.5 bg-slate-700 hover:bg-slate-600 text-white font-bold text-base rounded-2xl shadow-lg transition active:scale-95 border border-slate-500 cursor-pointer flex items-center justify-center space-x-2">
+                    <i class="fa-solid fa-xmark"></i>
+                    <span>NO</span>
+                </button>
+                <button onclick="enterSecretQuiz()" class="flex-1 py-3.5 bg-purple-600 hover:bg-purple-500 text-white font-extrabold text-base rounded-2xl shadow-xl transition active:scale-95 border border-purple-300/40 cursor-pointer flex items-center justify-center space-x-2">
+                    <span>Continue ( Not Recommended )</span>
+                    <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="custom-alert-box" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="w-full max-w-sm bg-slate-900 border-2 border-red-500 rounded-3xl p-6 text-center shadow-2xl">
+            <h3 class="text-3xl font-black text-white mb-4 tracking-wider drop-shadow-md">Chịu r😢</h3>
+            <div class="w-full h-48 rounded-2xl overflow-hidden mb-6 bg-slate-800 flex items-center justify-center border border-slate-700">
+                <img src="https://media1.tenor.com/m/5I1HPj8ekXgAAAAC/243.gif" alt="GIF động" class="w-full h-full object-cover">
+            </div>
+            <button onclick="closeCustomAlert()" class="w-full py-3 bg-red-600 hover:bg-red-500 text-white font-bold rounded-xl shadow-lg transition cursor-pointer">
+                Đóng & Tiếp Tục
+            </button>
+        </div>
+    </div>
+
+    <div id="correct-alert-box" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="w-full max-w-sm bg-slate-900 border-2 border-emerald-500 rounded-3xl p-6 text-center shadow-2xl">
+            <h3 class="text-3xl font-black text-emerald-400 mb-4 tracking-wider drop-shadow-md">👉👈</h3>
+            <div class="w-full h-48 rounded-2xl overflow-hidden mb-6 bg-slate-800 flex items-center justify-center border border-slate-700">
+                <img src="https://media.tenor.com/L9bil2cL2xIAAAAi/yellow-floating-sunglasses-cartoon.gif" alt="GIF đúng" class="w-full h-full object-cover">
+            </div>
+            <button onclick="closeCorrectAlert()" class="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl shadow-lg transition cursor-pointer">
+                Đóng & Tiếp Tục
+            </button>
+        </div>
+    </div>
+
+    <!-- Rickroll Modal Full Màn Hình + Tự động chuyển khi hết video -->
+    <div id="rickroll-modal" class="hidden fixed inset-0 z-50 bg-black flex flex-col items-center justify-center">
+        <!-- Nút Skip thủ công ở góc trên bên phải -->
+        <button onclick="closeRickrollModal()" class="absolute top-4 right-4 z-50 px-5 py-2.5 bg-red-600/90 hover:bg-red-500 text-white font-extrabold rounded-full shadow-2xl transition active:scale-95 flex items-center space-x-2 border-2 border-white/20 cursor-pointer backdrop-blur-md">
+            <span>Skip</span>
+            <i class="fa-solid fa-forward-step"></i>
+        </button>
+
+        <!-- Video HTML5 toàn màn hình, tự phát và tự động gọi hàm closeRickrollModal khi chạy hết -->
+        <div class="w-full h-full relative bg-black flex items-center justify-center">
+            <video id="local-video" class="w-full h-full object-contain" controls autoplay preload="auto" onended="closeRickrollModal()">
+                <source src="https://cdn.discordapp.com/attachments/1533858556980494336/1552733583343489125/YTSave_YouTube_Rick-Astley-Never-Gonna-Give-You-Up-Offi_Media_dQw4w9WgXcQ_004_360p_online-video-cutter.com.mp4?ex=6ab6af56&is=6ab55dd6&hm=8666b0f1f266fb1b9b437cfe13e837d74cb02428ab4d61d63998fef7e2df42a9&" type="video/mp4">
+                Trình duyệt của bạn không hỗ trợ thẻ video.
+            </video>
+        </div>
+    </div>
+
+    <div id="quiz-box" class="hidden fixed inset-0 z-30 bg-slate-100 flex flex-col justify-between p-2 sm:p-4">
+        <div class="w-full bg-white rounded-2xl p-4 sm:p-6 shadow-md text-center border-b-4 border-slate-200 flex items-center justify-between">
+            <span id="question-badge" class="px-3 py-1 bg-indigo-100 text-indigo-700 text-xs font-bold rounded-full uppercase">Câu hỏi</span>
+            <h2 id="question-text" class="text-xl sm:text-3xl font-black text-slate-800 tracking-wide flex-1 mx-2">
+                Câu hỏi sẽ hiển thị ở đây...
+            </h2>
+            <span id="question-counter" class="text-xs font-bold text-slate-400">1/10</span>
+        </div>
+
+        <div class="flex-1 my-3 flex items-center justify-center gap-2 sm:gap-6 px-2 sm:px-8 overflow-hidden relative">
+            <div class="flex-1 h-full max-h-[45vh] bg-slate-200 rounded-2xl overflow-hidden shadow-inner flex items-center justify-center border-2 border-slate-300 relative">
+                <img id="question-image" src="" alt="Ảnh câu hỏi" class="w-full h-full object-contain hidden transition-all duration-500">
+                
+                <div id="image-overlay" class="hidden absolute inset-0 bg-slate-900/60 backdrop-blur-xl flex flex-col items-center justify-center text-white z-10 transition-all duration-300">
+                    <i class="fa-solid fa-eye-slash text-4xl mb-2 text-indigo-300 animate-pulse"></i>
+                    <span class="font-extrabold text-sm sm:text-base tracking-wide bg-slate-800/80 px-4 py-2 rounded-xl border border-slate-600">
+                        Ảnh đã bị ẩn, chọn đáp án để xem!
+                    </span>
+                </div>
+
+                <div id="image-placeholder" class="text-slate-400 font-bold text-lg flex flex-col items-center">
+                    <i class="fa-solid fa-gamepad text-4xl mb-2 text-indigo-400"></i>
+                    <span>QUIZ 8A5</span>
+                </div>
+            </div>
+
+            <div class="absolute right-4 sm:right-12 z-20">
+                <button id="next-btn" onclick="nextQuestion()" class="hidden px-5 py-3.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-2xl shadow-xl transition active:scale-95 flex items-center space-x-2 text-sm sm:text-base border-2 border-indigo-400 cursor-pointer">
+                    <span>TIẾP CÂU SAU</span>
+                    <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+
+        <div id="options-container" class="grid grid-cols-2 gap-2 sm:gap-4 h-36 sm:h-48"></div>
+    </div>
+
+    <div id="result-box" class="hidden fixed inset-0 z-30 bg-slate-900/95 flex items-center justify-center p-4">
+        <div class="w-full max-w-md bg-white rounded-3xl p-8 text-center shadow-2xl">
+            <div class="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">
+                ❤️
+            </div>
+            <h2 class="text-2xl font-bold text-slate-800 mb-2">Hoàn Thành Bài Kiểm Tra!</h2>
+            <p id="score-text" class="text-slate-600 mb-6">Bạn trả lời đúng 0/0 câu</p>
+
+            <button onclick="restartQuiz()" class="w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-2xl shadow-md transition flex items-center justify-center space-x-2 cursor-pointer">
+                <i class="fa-solid fa-rotate-right"></i>
+                <span>Làm Lại Bài Thi</span>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const DEFAULT_BG_MUSIC = "https://cdn.discordapp.com/attachments/1533858556980494336/1552366656590712842/Kahoot_Lobby_Music.mp3?ex=6ab5599c&is=6ab4081c&hm=8fc6d4d9b1176bf462264cfc731ab0af5e50052095c75a6265052f902ab02058&"; 
+        const QUIZ_PLAY_MUSIC = "https://cdn.discordapp.com/attachments/1533858556980494336/1552364260066332732/good_kahoot_music.mp3?ex=6ab55761&is=6ab405e1&hm=9790cc6d95723de5505499be262d6c96fadfaf55d929787a47a162911c08bb8b&";
+
+        const soundPartyHorn = new Audio("https://cdn.discordapp.com/attachments/1533858556980494336/1552360056463564860/YTSave_YouTube_Confetti-with-Party-Horn-Sound-Green-Scr_Media_ZK9ygDosiVM_008_128k.mp3?ex=6ab55376&is=6ab401f6&hm=3d3f9932099e7e8a2d95cd14cf2caf67931e76059be6361883fcf683f6799d66&");
+        const soundWrong = new Audio("https://cdn.discordapp.com/attachments/1533858556980494336/1552361411076952225/duolingo-wrong.mp3?ex=6ab554b9&is=6ab40339&hm=8026a8b4d47e9d90ca01956b3b94205d05395b42fa0ad06920ad516479e40ce7&");
+        const soundWrongQ2 = new Audio("https://cdn.discordapp.com/attachments/1533858556980494336/1552722525291675768/spongebob-fail.mp3?ex=6ab6a50a&is=6ab5538a&hm=ee3e872d3319c4c6c5ef49c27181f66e2eafaceb066d8f4ac35a31e6a9159b90&");
+        const soundClick = new Audio("https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3");
+        
+        const bgMusic = document.getElementById("bg-music");
+        const quizMusic = document.getElementById("quiz-music");
+
+        function playSound(type) {
+            try {
+                if (type === 'click') {
+                    soundClick.currentTime = 0;
+                    soundClick.play().catch(e => {});
+                } else if (type === 'correct') {
+                    soundPartyHorn.currentTime = 0;
+                    soundPartyHorn.play().catch(e => {});
+                } else if (type === 'wrong') {
+                    soundWrong.currentTime = 0;
+                    soundWrong.play().catch(e => {});
+                } else if (type === 'wrongQ2') {
+                    soundWrongQ2.currentTime = 0;
+                    soundWrongQ2.play().catch(e => {});
+                }
+            } catch (err) {
+                console.log("Lỗi phát âm thanh:", err);
+            }
+        }
+
+        window.addEventListener('click', () => {
+            if (bgMusic.paused && document.getElementById("start-menu").classList.contains("hidden") === false) {
+                bgMusic.src = DEFAULT_BG_MUSIC;
+                bgMusic.volume = 0.4;
+                bgMusic.play().catch(e => {});
+            }
+        }, { once: true });
+
+        const optionStyles = [
+            { bg: "bg-red-500", label: "A" },
+            { bg: "bg-blue-600", label: "B" },
+            { bg: "bg-amber-500", label: "C" },
+            { bg: "bg-emerald-600", label: "D" }
+        ];
+
+        const questions = [
+            {
+                question: "Sinh Nhật Cô Nga Vào Ngày Bao Nhiêu?",
+                image: null,
+                options: ["08/11/1993", "09/11/1993", "09/11/1994", "08/11/1994"],
+                correct: 0,
+                isSecret: false,
+                hideImage: false  
+            },
+            {
+                question: "Cô Nga Có Dễ Thương Khum?",
+                image: null,
+                options: ["Cóa", "Khum"],
+                correct: 0,
+                isSecret: false,
+                hideImage: false  
+            },
+            {
+                question: "Trùm FF 8A5 là ai?",
+                image: "https://i.postimg.cc/sgSkkGNR/boi.jpg",
+                options: ["Tuấn Minh", "Tùng Lâm", "ĐNT", "Cường"],
+                correct: 1,
+                isSecret: false,
+                hideImage: true  
+            },
+            {
+                question: "Ai Là Người Nghiện Forsaken Nhất 8A5?",
+                image: "https://i.postimg.cc/tTzPw796/taodan.jpg",
+                options: ["Không Biết", "CTTM", "Trần Đao"],
+                correct: 2,
+                isSecret: false,
+                hideImage: true  
+            },
+            {
+                question: "Phong Có ĐZ Không?",
+                image: "https://i.postimg.cc/Zn201W5z/Screenshot-2026-09-25-000253.png",
+                options: ["Không", "Có"],
+                correct: [0, 1],
+                isSecret: false,
+                hideImage: false  
+            },
+            {
+                question: "Hiển Hay Được Gọi Là Gì?",
+                image: "https://i.postimg.cc/0NYc5k9t/hadnh.jpg",
+                options: ["Hạnh", "Hồng", "Miều", "Vinh"],
+                correct: 0,
+                isSecret: true,
+                hideImage: false  
+            },
+            {
+                question: "Mai Chi Với Tiến Minh Có Phải Là Couple Không?",
+                image: "https://i.postimg.cc/CL6vcMM5/tm.jpg",
+                options: ["Có", "Không"],
+                percents: ["99%", "1%"], 
+                correct: [0, 1],
+                isSecret: true,
+                hideImage: false
+            },
+            {
+                question: "Khánh Nam Được Gọi Nhiều Nhất Là Gì?",
+                image: "https://i.postimg.cc/dVQgz4gv/Screenshot-2026-09-24-235151.png",
+                options: ["Chúc", "CDMX","Tính"],
+                percents: ["90%", "4%","6%"], 
+                correct: [0, 1, 2],
+                isSecret: false,
+                hideImage: false  
+            },
+            {
+                question: "Trần Nhật Có GAY Không?",
+                image: "https://i.postimg.cc/tTzPw796/taodan.jpg",
+                options: ["Có", "Không"],
+                percents: ["99.99999%", "0.00001%"], 
+                correct: 0,
+                isSecret: true,
+                hideImage: false  
+            },
+            {
+                question: "Chủ Web Có Phải Là WIBU Ko?",
+                image: "https://i.postimg.cc/xdpkKpVL/Screenshot-2026-09-25-000706.png",
+                options: ["Cóa", "Khum"],
+                correct: 0,
+                isSecret: true,
+                hideImage: false
+            }
+        ];
+
+        let currentIndex = 0;
+        let score = 0;
+        let hasShownSecretIntro = false;
+
+        function startQuiz() {
+            playSound('click');
+
+            bgMusic.pause();
+            bgMusic.currentTime = 0;
+
+            if (QUIZ_PLAY_MUSIC) {
+                quizMusic.src = QUIZ_PLAY_MUSIC;
+                quizMusic.currentTime = 0;
+                quizMusic.volume = 0.4;
+                quizMusic.play().catch(e => console.log("Không thể phát nhạc câu hỏi:", e));
+            }
+
+            document.getElementById("start-menu").classList.add("hidden");
+            currentIndex = 0;
+            score = 0;
+            hasShownSecretIntro = false;
+            checkAndRunQuestion();
+        }
+
+        function checkAndRunQuestion() {
+            if (questions[currentIndex].isSecret && !hasShownSecretIntro) {
+                hasShownSecretIntro = true;
+                document.getElementById("quiz-box").classList.add("hidden");
+                document.getElementById("secret-intro-box").classList.remove("hidden");
+            } else {
+                document.getElementById("secret-intro-box").classList.add("hidden");
+                document.getElementById("quiz-box").classList.remove("hidden");
+                showQuestion();
+            }
+        }
+
+        function enterSecretQuiz() {
+            playSound('click');
+            document.getElementById("secret-intro-box").classList.add("hidden");
+            document.getElementById("quiz-box").classList.remove("hidden");
+            showQuestion();
+        }
+
+        function cancelSecretQuiz() {
+            playSound('click');
+            document.getElementById("secret-intro-box").classList.add("hidden");
+            showResult();
+        }
+
+        function showQuestion() {
+            const currentQ = questions[currentIndex];
+            
+            document.getElementById("question-text").innerText = currentQ.question;
+            document.getElementById("question-counter").innerText = `${currentIndex + 1}/${questions.length}`;
+            
+            const badgeEl = document.getElementById("question-badge");
+            if (currentQ.isSecret) {
+                badgeEl.innerText = "Secret Question";
+                badgeEl.className = "px-3 py-1 bg-purple-100 text-purple-700 text-xs font-bold rounded-full uppercase animate-pulse";
+            } else {
+                badgeEl.innerText = "Câu hỏi";
+                badgeEl.className = "px-3 py-1 bg-indigo-100 text-indigo-700 text-xs font-bold rounded-full uppercase";
+            }
+
+            document.getElementById("next-btn").classList.add("hidden");
+
+            const imgEl = document.getElementById("question-image");
+            const overlayEl = document.getElementById("image-overlay");
+            const placeholderEl = document.getElementById("image-placeholder");
+
+            if (currentQ.image) {
+                imgEl.src = currentQ.image;
+                imgEl.classList.remove("hidden");
+                placeholderEl.classList.add("hidden");
+
+                if (currentQ.hideImage) {
+                    imgEl.classList.add("blur-lg");
+                    overlayEl.classList.remove("hidden");
+                } else {
+                    imgEl.classList.remove("blur-lg");
+                    overlayEl.classList.add("hidden");
+                }
+            } else {
+                imgEl.classList.add("hidden");
+                overlayEl.classList.add("hidden");
+                placeholderEl.classList.remove("hidden");
+            }
+
+            const container = document.getElementById("options-container");
+            container.innerHTML = "";
+
+            currentQ.options.forEach((opt, index) => {
+                const style = optionStyles[index % 4];
+                const btn = document.createElement("button");
+                btn.className = `w-full h-full p-3 sm:p-4 text-white font-bold text-base sm:text-xl rounded-xl sm:rounded-2xl shadow-lg ${style.bg} transition-all transform flex items-center justify-between border-b-4 border-black/20 cursor-pointer`;
+                btn.innerHTML = `
+                    <div class="flex items-center space-x-3 sm:space-x-4 flex-1 text-left overflow-hidden">
+                        <span class="w-8 h-8 sm:w-10 sm:h-10 bg-white/20 rounded-lg flex items-center justify-center font-black text-lg sm:text-2xl shrink-0">${style.label}</span>
+                        <span id="opt-text-${index}" class="break-words flex-1">${opt}</span>
+                    </div>
+                    <div class="icon-slot w-10 h-10 flex items-center justify-center shrink-0 text-2xl font-black ml-2"></div>
+                `;
+                btn.onclick = () => selectOption(index, btn);
+                container.appendChild(btn);
+            });
+        }
+
+        function selectOption(selectedIndex, selectedBtn) {
+            const currentQ = questions[currentIndex];
+
+            if (currentIndex === 1) {
+                quizMusic.pause();
+                if (selectedIndex === 1) {
+                    playSound('wrongQ2');
+                    document.getElementById("custom-alert-box").classList.remove("hidden");
+                    return;
+                } else if (selectedIndex === 0) {
+                    playSound('correct');
+                    score++;
+
+                    confetti({
+                        particleCount: 150,
+                        spread: 90,
+                        origin: { y: 0.6 }
+                    });
+
+                    document.getElementById("correct-alert-box").classList.remove("hidden");
+                    return;
+                }
+            }
+
+            if (currentIndex === questions.length - 1) {
+                quizMusic.pause();
+                if (selectedIndex === 0) {
+                    // Mở modal Rickroll và phát video từ Discord
+                    const modal = document.getElementById("rickroll-modal");
+                    const vid = document.getElementById("local-video");
+                    modal.classList.remove("hidden");
+                    vid.currentTime = 0;
+                    vid.play().catch(e => console.log("Cần tương tác để phát video:", e));
+                    return;
+                } else {
+                    showResult();
+                    return;
+                }
+            }
+
+            quizMusic.pause();
+
+            const container = document.getElementById("options-container");
+            const allBtns = container.children;
+
+            const imgEl = document.getElementById("question-image");
+            const overlayEl = document.getElementById("image-overlay");
+            if (currentQ.image && currentQ.hideImage) {
+                imgEl.classList.remove("blur-lg");
+                overlayEl.classList.add("hidden");
+            }
+
+            if (currentQ.percents) {
+                currentQ.options.forEach((opt, index) => {
+                    const textSpan = document.getElementById(`opt-text-${index}`);
+                    if (textSpan && currentQ.percents[index]) {
+                        textSpan.innerText = `${opt} - ${currentQ.percents[index]}`;
+                    }
+                });
+            }
+
+            for (let btn of allBtns) {
+                btn.disabled = true;
+                btn.classList.add("opacity-40");
+            }
+
+            const correctIndices = Array.isArray(currentQ.correct) ? currentQ.correct : [currentQ.correct];
+            const isCorrect = correctIndices.includes(selectedIndex);
+
+            const selectedIcon = selectedBtn.querySelector('.icon-slot');
+            const quizBox = document.getElementById("quiz-box");
+            const flashOverlay = document.getElementById("flash-overlay");
+
+            if (isCorrect) {
+                playSound('correct');
+
+                selectedBtn.classList.remove("opacity-40", "bg-red-500", "bg-blue-600", "bg-amber-500", "bg-emerald-600");
+                selectedBtn.classList.add("bg-emerald-600", "ring-4", "ring-white", "scale-105");
+                selectedIcon.innerHTML = '<i class="fa-solid fa-check text-white"></i>';
+                score++;
+
+                confetti({
+                    particleCount: 150,
+                    spread: 90,
+                    origin: { y: 0.6 }
+                });
+
+                flashOverlay.className = "fixed inset-0 pointer-events-none z-50 bg-emerald-500/30 transition-opacity duration-300 opacity-100";
+                setTimeout(() => {
+                    flashOverlay.classList.remove("opacity-100");
+                    flashOverlay.classList.add("opacity-0");
+                }, 400);
+
+                document.getElementById("next-btn").classList.remove("hidden");
+
+            } else {
+                playSound('wrong');
+
+                selectedBtn.classList.remove("opacity-40", "bg-red-500", "bg-blue-600", "bg-amber-500", "bg-emerald-600");
+                selectedBtn.classList.add("bg-red-600", "scale-95");
+                selectedIcon.innerHTML = '<i class="fa-solid fa-xmark text-white"></i>';
+                
+                correctIndices.forEach(idx => {
+                    const correctBtn = allBtns[idx];
+                    const correctIcon = correctBtn.querySelector('.icon-slot');
+                    correctBtn.classList.remove("opacity-40", "bg-red-500", "bg-blue-600", "bg-amber-500", "bg-emerald-600");
+                    correctBtn.classList.add("bg-emerald-600", "ring-4", "ring-white", "scale-105");
+                    correctIcon.innerHTML = '<i class="fa-solid fa-check text-white"></i>';
+                });
+
+                quizBox.classList.add("animate-shake");
+                setTimeout(() => {
+                    quizBox.classList.remove("animate-shake");
+                }, 450);
+
+                flashOverlay.className = "fixed inset-0 pointer-events-none z-50 bg-red-500/30 transition-opacity duration-300 opacity-100";
+                setTimeout(() => {
+                    flashOverlay.classList.remove("opacity-100");
+                    flashOverlay.classList.add("opacity-0");
+                }, 400);
+
+                document.getElementById("next-btn").classList.remove("hidden");
+            }
+        }
+
+        function closeCustomAlert() {
+            playSound('click');
+            document.getElementById("custom-alert-box").classList.add("hidden");
+
+            const container = document.getElementById("options-container");
+            const allBtns = container.children;
+            const selectedBtn = allBtns[1]; 
+            const selectedIcon = selectedBtn.querySelector('.icon-slot');
+            const quizBox = document.getElementById("quiz-box");
+            const flashOverlay = document.getElementById("flash-overlay");
+
+            const imgEl = document.getElementById("question-image");
+            const overlayEl = document.getElementById("image-overlay");
+            if (questions[1].image && questions[1].hideImage) {
+                imgEl.classList.remove("blur-lg");
+                overlayEl.classList.add("hidden");
+            }
+
+            for (let btn of allBtns) {
+                btn.disabled = true;
+                btn.classList.add("opacity-40");
+            }
+
+            selectedBtn.classList.remove("opacity-40", "bg-red-500", "bg-blue-600", "bg-amber-500", "bg-emerald-600");
+            selectedBtn.classList.add("bg-red-600", "scale-95");
+            selectedIcon.innerHTML = '<i class="fa-solid fa-xmark text-white"></i>';
+
+            const correctBtn = allBtns[0];
+            const correctIcon = correctBtn.querySelector('.icon-slot');
+            correctBtn.classList.remove("opacity-40", "bg-red-500", "bg-blue-600", "bg-amber-500", "bg-emerald-600");
+            correctBtn.classList.add("bg-emerald-600", "ring-4", "ring-white", "scale-105");
+            correctIcon.innerHTML = '<i class="fa-solid fa-check text-white"></i>';
+
+            quizBox.classList.add("animate-shake");
+            setTimeout(() => {
+                quizBox.classList.remove("animate-shake");
+            }, 450);
+
+            flashOverlay.className = "fixed inset-0 pointer-events-none z-50 bg-red-500/30 transition-opacity duration-300 opacity-100";
+            setTimeout(() => {
+                flashOverlay.classList.remove("opacity-100");
+                flashOverlay.classList.add("opacity-0");
+            }, 400);
+
+            document.getElementById("next-btn").classList.remove("hidden");
+        }
+
+        function closeCorrectAlert() {
+            playSound('click');
+            document.getElementById("correct-alert-box").classList.add("hidden");
+
+            const container = document.getElementById("options-container");
+            const allBtns = container.children;
+            const selectedBtn = allBtns[0]; 
+            const selectedIcon = selectedBtn.querySelector('.icon-slot');
+
+            for (let btn of allBtns) {
+                btn.disabled = true;
+                btn.classList.add("opacity-40");
+            }
+
+            selectedBtn.classList.remove("opacity-40", "bg-red-500", "bg-blue-600", "bg-amber-500", "bg-emerald-600");
+            selectedBtn.classList.add("bg-emerald-600", "ring-4", "ring-white", "scale-105");
+            selectedIcon.innerHTML = '<i class="fa-solid fa-check text-white"></i>';
+
+            document.getElementById("next-btn").classList.remove("hidden");
+        }
+
+        function closeRickrollModal() {
+            playSound('click');
+            const vid = document.getElementById("local-video");
+            vid.pause(); // Dừng video ngầm
+            document.getElementById("rickroll-modal").classList.add("hidden");
+            showResult(); 
+        }
+
+        function nextQuestion() {
+            playSound('click');
+            currentIndex++;
+            if (currentIndex < questions.length) {
+                quizMusic.currentTime = 0; 
+                quizMusic.play().catch(e => console.log("Không thể phát tiếp nhạc:", e));
+                checkAndRunQuestion();
+            } else {
+                showResult();
+            }
+        }
+
+        function showResult() {
+            quizMusic.pause();
+            quizMusic.currentTime = 0;
+
+            playSound('correct');
+            document.getElementById("quiz-box").classList.add("hidden");
+            document.getElementById("secret-intro-box").classList.add("hidden");
+            document.getElementById("result-box").classList.remove("hidden");
+            document.getElementById("score-text").innerText = `Bạn đã trả lời đúng ${score} / ${questions.length} câu`;
+        }
+
+        function restartQuiz() {
+            playSound('click');
+            document.getElementById("result-box").classList.add("hidden");
+            document.getElementById("start-menu").classList.remove("hidden");
+        }
+    </script>
+</body>
+</html>
